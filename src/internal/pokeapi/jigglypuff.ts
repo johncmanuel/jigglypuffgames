@@ -1,13 +1,11 @@
-import { getPokemon, pokeAPIUrl } from "@/internal/pokeapi/pokemon";
+// import { getPokemon, pokeAPIUrl } from "@/internal/pokeapi/pokemon";
+import jigglypuff from "@/internal/pokeapi/jigglypuff.json";
 
-export const getJigglyPuffSprite = async () => {
-	const jigglypuff = await getJigglypuff();
-
-	// Get the official artwork of Jigglypuff
-	return jigglypuff.sprites.other.official_artwork.front_default;
+// Get the official artwork of Jigglypuff
+export const getJigglyPuffSprite = () => {
+	return jigglypuff.sprites.other["official-artwork"].front_default;
 };
 
-export const getJigglypuff = async () => {
-	const res = await getPokemon(pokeAPIUrl, "jigglypuff");
-	return res.json();
-};
+// export const getJigglypuff = async () => {
+// 	return await getPokemon(pokeAPIUrl, "jigglypuff");
+// };
