@@ -4,7 +4,7 @@ type ExtendedHeadProps = {
 	title: string;
 };
 
-export const ExtendedHead: React.FC<ExtendedHeadProps> = ({
+const ExtendedHead: React.FC<ExtendedHeadProps> = ({
 	title,
 }) => {
 	return (
@@ -19,3 +19,5 @@ export const ExtendedHead: React.FC<ExtendedHeadProps> = ({
 		</Head>
 	);
 };
+
+export default ExtendedHead;
