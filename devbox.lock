@@ -3,6 +3,7 @@
   "packages": {
     "nodejs@22.0.0": {
       "last_modified": "2024-05-12T16:19:40Z",
+      "plugin_version": "0.0.2",
       "resolved": "github:NixOS/nixpkgs/3281bec7174f679eabf584591e75979a258d8c40#nodejs_22",
       "source": "devbox-search",
       "version": "22.0.0",
