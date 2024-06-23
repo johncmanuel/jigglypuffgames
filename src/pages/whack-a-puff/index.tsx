@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 export default function WhackAPuff() {
 	const initTimerSecs = 1;
 	const initClicks = 0;
-	const TIME_LIMIT_SECS = 10;
+	const TIME_LIMIT_SECS = 30;
 
 	const [timerSecs, setTimerSecs] = useState(initTimerSecs);
 	const [gameBegin, setGameBegin] = useState(false);
@@ -114,8 +114,11 @@ const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
 		: window.innerHeight;
 	const maxLeft = imgWidth ? window.innerWidth - imgWidth : window.innerWidth;
 
-	const top = Math.floor(Math.random() * maxTop);
-	const left = Math.floor(Math.random() * maxLeft);
+	// To prevent Jigglypuff from spawning beyond the viewport,
+	// divide the max values by 2. This should keep Jigglypuff
+	// within the window.
+	const top = Math.floor(Math.random() * (maxTop / 2));
+	const left = Math.floor(Math.random() * (maxLeft / 2));
 	return { top, left };
 };
 
