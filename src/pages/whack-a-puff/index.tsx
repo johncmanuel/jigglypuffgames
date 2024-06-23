@@ -6,43 +6,58 @@ import Container from "@/components/Container";
 import { useState, useEffect } from "react";
 
 export default function WhackAPuff() {
-	const [timerSecs, setTimerSecs] = useState(1);
+	const initTimerSecs = 1;
+	const initClicks = 0;
+	const TIME_LIMIT_SECS = 10;
+
+	const [timerSecs, setTimerSecs] = useState(initTimerSecs);
 	const [gameBegin, setGameBegin] = useState(false);
-	const [clicks, setClicks] = useState(1);
-	const TIME_LIMIT_SECS = 60;
+	const [playedPreviously, setPlayedPreviously] = useState(false);
+	const [clicks, setClicks] = useState(initClicks);
 
 	const startGame = () => {
+		setPlayedPreviously(false);
 		setGameBegin(true);
+		if (clicks >= 0) {
+			setClicks(initClicks);
+		}
+		if (timerSecs < 0) {
+			setTimerSecs(initTimerSecs);
+		}
 	};
 
 	const endGame = () => {
+		setPlayedPreviously(true);
 		setGameBegin(false);
+		setTimerSecs(1);
 	};
 
-	const handleClicks = (newClicks: number) => {
-		setClicks(newClicks);
+	const handleClicks = (updatedClicks: number) => {
+		setClicks(updatedClicks);
 	};
 
 	useEffect(() => {
 		let interval: NodeJS.Timeout;
-		if (!gameBegin) {
-		} else if (!gameBegin && timerSecs !== 0) {
-			// @ts-ignore: ignore local variable being used before
+
+		if (!gameBegin && timerSecs !== 0) {
+			// @ts-ignore: ignore error regarding usage of variable before
 			// assignment
 			clearInterval(interval);
+		} else {
+			interval = setInterval(() => {
+				setTimerSecs((sec) => {
+					const nextSec = sec + 1;
+					if (nextSec >= TIME_LIMIT_SECS) {
+						endGame();
+						// () => clearInterval(interval);
+						return TIME_LIMIT_SECS;
+					}
+					return sec + 1;
+				});
+			}, 1000);
 		}
-		interval = setInterval(() => {
-			setTimerSecs((sec) => {
-				const nextSec = sec + 1;
-				if (nextSec >= TIME_LIMIT_SECS) {
-					endGame();
-					return TIME_LIMIT_SECS;
-				}
-				return sec + 1;
-			});
-		}, 1000);
 		return () => clearInterval(interval);
-	}, [gameBegin, timerSecs]);
+	}, [gameBegin]);
 
 	return (
 		<>
@@ -51,6 +66,13 @@ export default function WhackAPuff() {
 			</Header>
 			<ExtendedHead title={"Whack a Puff!"} />
 			<Container>
+				{playedPreviously && (
+					<>
+						<h1>Times up!</h1>
+						<h2>Total points earned: {clicks}</h2>
+						<p>Play again?</p>
+					</>
+				)}
 				{!gameBegin && (
 					<button
 						type="button"
@@ -62,7 +84,6 @@ export default function WhackAPuff() {
 				)}
 				{gameBegin && (
 					<>
-						{timerSecs === TIME_LIMIT_SECS && <h1>Times up!</h1>}
 						{timerSecs !== TIME_LIMIT_SECS && (
 							<h1>
 								Timer: {timerSecs}{" "}
@@ -71,10 +92,9 @@ export default function WhackAPuff() {
 								Clicks: {clicks}
 							</h1>
 						)}
-						{/* <Jigglypuff onClick={handleClicks} /> */}
 						<JigglypuffManager
 							currentClicks={clicks}
-							relayClicks={handleClicks}
+							updateClicks={handleClicks}
 						/>
 					</>
 				)}
@@ -85,7 +105,7 @@ export default function WhackAPuff() {
 
 interface JigglypuffManagerProps {
 	currentClicks: number;
-	relayClicks: (clicks: number) => void;
+	updateClicks: (clicks: number) => void;
 }
 
 const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
@@ -101,7 +121,7 @@ const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
 
 const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
 	currentClicks,
-	relayClicks,
+	updateClicks,
 }) => {
 	const JIGGLYPUFF_WIDTH_PX = 250;
 	const JIGGLYPUFF_HEIGHT_PX = 250;
@@ -117,10 +137,9 @@ const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
 		setVisible(false);
 		const { top, left } = getRandomPos();
 
-		relayClicks(currentClicks + 1);
+		updateClicks(currentClicks + 1);
 
 		const delayMs = 500;
-
 		setTimeout(() => {
 			setPosition({ top, left });
 			setVisible(true);
@@ -131,13 +150,14 @@ const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
 		<Jigglypuff
 			width={JIGGLYPUFF_WIDTH_PX}
 			height={JIGGLYPUFF_HEIGHT_PX}
+			// @ts-ignore
 			onClick={handleClick}
 			style={{
 				position: "absolute",
 				top: position.top,
 				left: position.left,
 				visibility: visible ? "visible" : "hidden",
-				transition: "visibility 0.5s ease-in-out",
+				// transition: "visibility 0.5s ease-in-out",
 				cursor: "pointer",
 			}}
 		/>
