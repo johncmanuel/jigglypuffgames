@@ -1,13 +1,14 @@
 {
-	"$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.5/.schema/devbox.schema.json",
-	"packages": ["nodejs@21.7.1"],
-	"env": {
-		"DEVBOX_COREPACK_ENABLED": "true"
-	},
-	"shell": {
-		"init_hook": ["npm install"],
-		"scripts": {
-			"run": "npm run start"
-		}
-	}
+  "$schema":  "https://raw.githubusercontent.com/jetify-com/devbox/0.11.1/.schema/devbox.schema.json",
+  "packages": ["nodejs@22.0.0"],
+  "shell": {
+    "init_hook": [
+      "echo 'Welcome to devbox!' > /dev/null"
+    ],
+    "scripts": {
+      "test": [
+        "echo \"Error: no test specified\" && exit 1"
+      ]
+    }
+  }
 }
