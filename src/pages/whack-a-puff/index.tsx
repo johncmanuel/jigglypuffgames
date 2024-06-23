@@ -5,6 +5,8 @@ import Header from "@/components/Header";
 import Container from "@/components/Container";
 import { useState, useEffect } from "react";
 
+// TODO: Create a mobile friendly version of this game. This
+// would require a lot of CSS makeovers and make the
 export default function WhackAPuff() {
 	const initTimerSecs = 1;
 	const initClicks = 0;
