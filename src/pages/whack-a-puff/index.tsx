@@ -9,21 +9,21 @@ import { useState, useEffect } from "react";
 // would require a lot of CSS makeovers and make the
 export default function WhackAPuff() {
 	const initTimerSecs = 1;
-	const initClicks = 0;
-	const TIME_LIMIT_SECS = 30;
+	const initPoints = 0;
+	const TIME_LIMIT_SECS = 10;
 
 	const [timerSecs, setTimerSecs] = useState(initTimerSecs);
 	const [gameBegin, setGameBegin] = useState(false);
 	const [playedPreviously, setPlayedPreviously] = useState(false);
-	const [clicks, setClicks] = useState(initClicks);
+	const [points, setPoints] = useState(initPoints);
 
 	const startGame = () => {
 		setPlayedPreviously(false);
 		setGameBegin(true);
-		if (clicks >= 0) {
-			setClicks(initClicks);
+		if (points >= 0) {
+			setPoints(initPoints);
 		}
-		if (timerSecs < 0) {
+		if (timerSecs > 0) {
 			setTimerSecs(initTimerSecs);
 		}
 	};
@@ -34,8 +34,8 @@ export default function WhackAPuff() {
 		setTimerSecs(1);
 	};
 
-	const handleClicks = (updatedClicks: number) => {
-		setClicks(updatedClicks);
+	const handlePoints = (updatedPoints: number) => {
+		setPoints(updatedPoints);
 	};
 
 	useEffect(() => {
@@ -71,7 +71,7 @@ export default function WhackAPuff() {
 				{playedPreviously && (
 					<>
 						<h1>Times up!</h1>
-						<h2>Total points earned: {clicks}</h2>
+						<h2>Total points earned: {points}</h2>
 						<p>Play again?</p>
 					</>
 				)}
@@ -91,12 +91,12 @@ export default function WhackAPuff() {
 								Timer: {timerSecs}{" "}
 								{timerSecs === 1 && <span>second</span>}{" "}
 								{timerSecs !== 1 && <span>seconds</span>}
-								Clicks: {clicks}
+								Clicks: {points}
 							</h1>
 						)}
 						<JigglypuffManager
-							currentClicks={clicks}
-							updateClicks={handleClicks}
+							currentClicks={points}
+							updatePoints={handlePoints}
 						/>
 					</>
 				)}
@@ -107,7 +107,7 @@ export default function WhackAPuff() {
 
 interface JigglypuffManagerProps {
 	currentClicks: number;
-	updateClicks: (clicks: number) => void;
+	updatePoints: (clicks: number) => void;
 }
 
 const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
@@ -126,7 +126,7 @@ const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
 
 const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
 	currentClicks,
-	updateClicks,
+	updatePoints,
 }) => {
 	const JIGGLYPUFF_WIDTH_PX = 250;
 	const JIGGLYPUFF_HEIGHT_PX = 250;
@@ -140,9 +140,9 @@ const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
 
 	const handleClick = () => {
 		setVisible(false);
-		const { top, left } = getRandomPos();
 
-		updateClicks(currentClicks + 1);
+		const { top, left } = getRandomPos();
+		updatePoints(currentClicks + 1);
 
 		setTimeout(() => {
 			setPosition({ top, left });
