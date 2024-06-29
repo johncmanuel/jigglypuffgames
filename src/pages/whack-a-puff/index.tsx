@@ -144,11 +144,10 @@ const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
 
 		updateClicks(currentClicks + 1);
 
-		const delayMs = 500;
 		setTimeout(() => {
 			setPosition({ top, left });
 			setVisible(true);
-		}, delayMs);
+		});
 	};
 
 	return (
