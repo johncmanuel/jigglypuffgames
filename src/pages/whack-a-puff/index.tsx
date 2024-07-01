@@ -3,39 +3,63 @@ import ExtendedHead from "@/components/ExtendedHead";
 import Navbar from "@/components/Navbar";
 import Header from "@/components/Header";
 import Container from "@/components/Container";
-import { useState, useEffect } from "react";
+import {
+	useState,
+	useEffect,
+	useRef,
+	MutableRefObject,
+	RefObject,
+} from "react";
+import useClickOutside from "@/hooks/useOnOutsideClick";
 
-// TODO: Create a mobile friendly version of this game. This
-// would require a lot of CSS makeovers and make the
 export default function WhackAPuff() {
 	const initTimerSecs = 1;
-	const initClicks = 0;
-	const TIME_LIMIT_SECS = 30;
+	const initPoints = 0;
+	const initStreak = 0;
+	const TIME_LIMIT_SECS = 60;
 
 	const [timerSecs, setTimerSecs] = useState(initTimerSecs);
 	const [gameBegin, setGameBegin] = useState(false);
 	const [playedPreviously, setPlayedPreviously] = useState(false);
-	const [clicks, setClicks] = useState(initClicks);
+	const [points, setPoints] = useState(initPoints);
+	const [pointsStreak, setPointsStreak] = useState(initStreak);
+	const [maxPointsStreak, setMaxPointsStreak] = useState(initStreak);
+	const [isStreakBroken, setStreakBroken] = useState(false);
 
+	const triggerRef = useRef<HTMLElement>(null);
+	const refs: MutableRefObject<HTMLElement | null>[] = [triggerRef];
+
+	// Track any clicks in the playable area, excluding Jigglypuff
+	useClickOutside(refs, () => setStreakBroken(true));
+
+	// Reset any state data to their initial values
+	// when starting the game
 	const startGame = () => {
-		setPlayedPreviously(false);
 		setGameBegin(true);
-		if (clicks >= 0) {
-			setClicks(initClicks);
-		}
-		if (timerSecs < 0) {
-			setTimerSecs(initTimerSecs);
-		}
+		setPoints(points >= 0 ? initPoints : points);
+		setTimerSecs(timerSecs > 0 ? initTimerSecs : timerSecs);
+		setPointsStreak(pointsStreak > 0 ? initStreak : pointsStreak);
+		setMaxPointsStreak(maxPointsStreak > 0 ? initStreak : maxPointsStreak);
+		setPlayedPreviously(playedPreviously ? false : playedPreviously);
+		setStreakBroken(isStreakBroken ? false : isStreakBroken);
 	};
 
 	const endGame = () => {
 		setPlayedPreviously(true);
 		setGameBegin(false);
-		setTimerSecs(1);
 	};
 
-	const handleClicks = (updatedClicks: number) => {
-		setClicks(updatedClicks);
+	const handlePoints = (updatedPoints: number) => {
+		setPoints(updatedPoints);
+	};
+
+	const handleStreak = (updatedStreak: number) => {
+		setPointsStreak(isStreakBroken ? 0 : updatedStreak);
+		setMaxPointsStreak(Math.max(pointsStreak, updatedStreak));
+	};
+
+	const handleBrokenStreak = (updatedIsStreakBroken: boolean) => {
+		setStreakBroken(updatedIsStreakBroken);
 	};
 
 	useEffect(() => {
@@ -61,6 +85,17 @@ export default function WhackAPuff() {
 		return () => clearInterval(interval);
 	}, [gameBegin]);
 
+	// Manage streak
+	useEffect(() => {
+		if (isStreakBroken) {
+			setPointsStreak(initStreak);
+			setStreakBroken(false);
+		}
+		return () => {
+			setPointsStreak(initStreak);
+		};
+	}, [isStreakBroken]);
+
 	return (
 		<>
 			<Header>
@@ -71,7 +106,8 @@ export default function WhackAPuff() {
 				{playedPreviously && (
 					<>
 						<h1>Times up!</h1>
-						<h2>Total points earned: {clicks}</h2>
+						<h2>Total points earned: {points}</h2>
+						<h2>Highest streak: {maxPointsStreak}</h2>
 						<p>Play again?</p>
 					</>
 				)}
@@ -91,13 +127,22 @@ export default function WhackAPuff() {
 								Timer: {timerSecs}{" "}
 								{timerSecs === 1 && <span>second</span>}{" "}
 								{timerSecs !== 1 && <span>seconds</span>}
-								Clicks: {clicks}
+								<br />
+								Clicks: {points}
+								<br />
+								Streak: {pointsStreak}
 							</h1>
 						)}
-						<JigglypuffManager
-							currentClicks={clicks}
-							updateClicks={handleClicks}
-						/>
+						{/* https://stackoverflow.com/a/63130433 */}
+						<div ref={triggerRef as RefObject<HTMLDivElement>}>
+							<JigglypuffManager
+								currentPoints={points}
+								currentStreak={pointsStreak}
+								updatePoints={handlePoints}
+								updateStreak={handleStreak}
+								updateIfStreakBroken={handleBrokenStreak}
+							/>
+						</div>
 					</>
 				)}
 			</Container>
@@ -106,8 +151,11 @@ export default function WhackAPuff() {
 }
 
 interface JigglypuffManagerProps {
-	currentClicks: number;
-	updateClicks: (clicks: number) => void;
+	currentPoints: number;
+	currentStreak: number;
+	updatePoints: (points: number) => void;
+	updateStreak: (streak: number) => void;
+	updateIfStreakBroken: (streakBroken: boolean) => void;
 }
 
 const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
@@ -125,11 +173,14 @@ const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
 };
 
 const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
-	currentClicks,
-	updateClicks,
+	currentPoints,
+	currentStreak,
+	updatePoints,
+	updateStreak,
+	updateIfStreakBroken,
 }) => {
-	const JIGGLYPUFF_WIDTH_PX = 250;
-	const JIGGLYPUFF_HEIGHT_PX = 250;
+	// const JIGGLYPUFF_WIDTH_PX = 250;
+	// const JIGGLYPUFF_HEIGHT_PX = 250;
 
 	const initPos = getRandomPos();
 	const [visible, setVisible] = useState(true);
@@ -140,21 +191,23 @@ const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
 
 	const handleClick = () => {
 		setVisible(false);
+
 		const { top, left } = getRandomPos();
 
-		updateClicks(currentClicks + 1);
+		updatePoints(currentPoints + 1);
+		updateIfStreakBroken(false);
+		updateStreak(currentStreak + 1);
 
-		const delayMs = 500;
 		setTimeout(() => {
 			setPosition({ top, left });
 			setVisible(true);
-		}, delayMs);
+		});
 	};
 
 	return (
 		<Jigglypuff
-			width={JIGGLYPUFF_WIDTH_PX}
-			height={JIGGLYPUFF_HEIGHT_PX}
+			// width={JIGGLYPUFF_WIDTH_PX}
+			// height={JIGGLYPUFF_HEIGHT_PX}
 			// @ts-ignore
 			onClick={handleClick}
 			style={{
