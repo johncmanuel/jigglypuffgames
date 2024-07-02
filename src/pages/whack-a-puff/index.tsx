@@ -55,13 +55,14 @@ export default function WhackAPuff() {
 
 	const handleStreak = (updatedStreak: number) => {
 		setPointsStreak(isStreakBroken ? 0 : updatedStreak);
-		setMaxPointsStreak(Math.max(pointsStreak, updatedStreak));
+		setMaxPointsStreak(Math.max(maxPointsStreak, pointsStreak));
 	};
 
 	const handleBrokenStreak = (updatedIsStreakBroken: boolean) => {
 		setStreakBroken(updatedIsStreakBroken);
 	};
 
+	// Manage timer
 	useEffect(() => {
 		let interval: NodeJS.Timeout;
 
