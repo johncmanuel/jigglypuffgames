@@ -14,15 +14,15 @@ import { ReactNode, FC, Ref } from "react";
 // }
 
 interface ContainerProps {
-	children: ReactNode;
+  children: ReactNode;
 }
 
 const Container: FC<ContainerProps> = ({ children, ...props }) => {
-	return (
-		<main className="container" {...props}>
-			{children}
-		</main>
-	);
+  return (
+    <main className="container" {...props}>
+      {children}
+    </main>
+  );
 };
 
 export default Container;
