@@ -13,18 +13,25 @@ import {
 import useClickOutside from "@/hooks/useOnOutsideClick";
 
 export default function WhackAPuff() {
-  const initTimerSecs = 1;
-  const initPoints = 0;
-  const initStreak = 0;
-  const TIME_LIMIT_SECS = 60;
+  const INIT_TIMER_SECS = 1;
+  const INIT_POINTS = 0;
+  const INIT_STREAKS = 0;
 
-  const [timerSecs, setTimerSecs] = useState(initTimerSecs);
+  enum TIME_LIMITS {
+    SHORT = 15,
+    NORMAL = 30,
+    LONG = 60,
+  }
+  const DEFAULT_TIME_LIMIT_SECS = 60;
+
+  const [timerSecs, setTimerSecs] = useState(INIT_TIMER_SECS);
   const [gameBegin, setGameBegin] = useState(false);
   const [playedPreviously, setPlayedPreviously] = useState(false);
-  const [points, setPoints] = useState(initPoints);
-  const [pointsStreak, setPointsStreak] = useState(initStreak);
-  const [maxPointsStreak, setMaxPointsStreak] = useState(initStreak);
+  const [points, setPoints] = useState(INIT_POINTS);
+  const [pointsStreak, setPointsStreak] = useState(INIT_STREAKS);
+  const [maxPointsStreak, setMaxPointsStreak] = useState(INIT_STREAKS);
   const [isStreakBroken, setStreakBroken] = useState(false);
+  const [timeLimitSecs, setTimeLimitSecs] = useState(0);
 
   const triggerRef = useRef<HTMLElement>(null);
   const refs: MutableRefObject<HTMLElement | null>[] = [triggerRef];
@@ -34,12 +41,14 @@ export default function WhackAPuff() {
 
   // Reset any state data to their initial values
   // when starting the game
-  const startGame = () => {
+  const startGame = (timeLimit?: number) => {
     setGameBegin(true);
-    setPoints(points >= 0 ? initPoints : points);
-    setTimerSecs(timerSecs > 0 ? initTimerSecs : timerSecs);
-    setPointsStreak(pointsStreak > 0 ? initStreak : pointsStreak);
-    setMaxPointsStreak(maxPointsStreak > 0 ? initStreak : maxPointsStreak);
+    setTimeLimitSecs(
+      timeLimit === undefined ? DEFAULT_TIME_LIMIT_SECS : timeLimit
+    );
+    setPoints(points >= 0 ? INIT_POINTS : points);
+    setPointsStreak(pointsStreak > 0 ? INIT_STREAKS : pointsStreak);
+    setMaxPointsStreak(maxPointsStreak > 0 ? INIT_STREAKS : maxPointsStreak);
     setPlayedPreviously(playedPreviously ? false : playedPreviously);
     setStreakBroken(isStreakBroken ? false : isStreakBroken);
   };
@@ -47,6 +56,7 @@ export default function WhackAPuff() {
   const endGame = () => {
     setPlayedPreviously(true);
     setGameBegin(false);
+    // setTimerSecs(0);
   };
 
   const handlePoints = (updatedPoints: number) => {
@@ -63,6 +73,7 @@ export default function WhackAPuff() {
   };
 
   // Manage timer
+  // BUG: Timer is still going after game ends.
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -74,10 +85,10 @@ export default function WhackAPuff() {
       interval = setInterval(() => {
         setTimerSecs((sec) => {
           const nextSec = sec + 1;
-          if (nextSec >= TIME_LIMIT_SECS) {
+          if (nextSec >= timeLimitSecs) {
             endGame();
             // () => clearInterval(interval);
-            return TIME_LIMIT_SECS;
+            return timeLimitSecs;
           }
           return sec + 1;
         });
@@ -89,11 +100,11 @@ export default function WhackAPuff() {
   // Manage streak
   useEffect(() => {
     if (isStreakBroken) {
-      setPointsStreak(initStreak);
+      setPointsStreak(INIT_STREAKS);
       setStreakBroken(false);
     }
     return () => {
-      setPointsStreak(initStreak);
+      setPointsStreak(INIT_STREAKS);
     };
   }, [isStreakBroken]);
 
@@ -113,17 +124,26 @@ export default function WhackAPuff() {
           </>
         )}
         {!gameBegin && (
-          <button
-            type="button"
-            className="focus:outline-none text-white bg-pink-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
-            onClick={startGame}
-          >
-            Start game
-          </button>
+          <div>
+            <button
+              type="button"
+              className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+              onClick={() => startGame(TIME_LIMITS.SHORT)}
+            >
+              Start game ({TIME_LIMITS.SHORT} secs)
+            </button>
+            <button
+              type="button"
+              className="focus:outline-none text-white bg-pink-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+              onClick={() => startGame(TIME_LIMITS.NORMAL)}
+            >
+              Start game ({TIME_LIMITS.NORMAL} secs)
+            </button>
+          </div>
         )}
         {gameBegin && (
           <>
-            {timerSecs !== TIME_LIMIT_SECS && (
+            {timerSecs !== DEFAULT_TIME_LIMIT_SECS && (
               <h1>
                 Timer: {timerSecs} {timerSecs === 1 && <span>second</span>}{" "}
                 {timerSecs !== 1 && <span>seconds</span>}
