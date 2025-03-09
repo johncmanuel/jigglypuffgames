@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getJigglyPuffSprite } from "@/internal/pokeapi/jigglypuff";
+import { getJigglyPuffSprite } from "@/internal/pokeapi/pokemon";
 
 interface JigglypuffProps {
   width?: number;

@@ -11,6 +11,7 @@ import {
   RefObject,
 } from "react";
 import useClickOutside from "@/hooks/useOnOutsideClick";
+import Clefairy from "@/components/Clefairy";
 
 export default function WhackAPuff() {
   const initPoints = 0;
@@ -135,7 +136,7 @@ export default function WhackAPuff() {
             )}
             {/* https://stackoverflow.com/a/63130433 */}
             <div ref={triggerRef as RefObject<HTMLDivElement>}>
-              <JigglypuffManager
+              <GameManager
                 currentPoints={points}
                 currentStreak={pointsStreak}
                 updatePoints={handlePoints}
@@ -150,7 +151,7 @@ export default function WhackAPuff() {
   );
 }
 
-interface JigglypuffManagerProps {
+interface GameManagerProps {
   currentPoints: number;
   currentStreak: number;
   updatePoints: (points: number) => void;
@@ -172,32 +173,60 @@ const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
   return { top, left };
 };
 
-const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
+const GameManager: React.FC<GameManagerProps> = ({
   currentPoints,
   currentStreak,
   updatePoints,
   updateStreak,
   updateIfStreakBroken,
 }) => {
-  // const JIGGLYPUFF_WIDTH_PX = 250;
-  // const JIGGLYPUFF_HEIGHT_PX = 250;
-
   const initPos = getRandomPos();
   const [visible, setVisible] = useState(true);
   const [position, setPosition] = useState({
     top: initPos.top,
     left: initPos.left,
   });
+  const [isClefairy, setIsClefairy] = useState(false);
+
+  const chanceClefairySpawns = 0.2;
+  const canSpawnClefairy = Math.random() < chanceClefairySpawns;
+
+  // hide clefairy after 1 second if not clicked
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    if (isClefairy && visible) {
+      timeout = setTimeout(() => {
+        setVisible(false);
+        setTimeout(() => {
+          const { top, left } = getRandomPos();
+          setPosition({ top, left });
+          setVisible(true);
+          setIsClefairy(canSpawnClefairy);
+        }, 500);
+      }, 1000);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [isClefairy, visible]);
 
   const handleClick = () => {
     setVisible(false);
 
     const { top, left } = getRandomPos();
 
-    updatePoints(currentPoints + 1);
-    updateIfStreakBroken(false);
-    updateStreak(currentStreak + 1);
+    if (isClefairy) {
+      // points can't go below 0
+      const deductedPoints = Math.max(currentPoints - 10, 0);
+      updatePoints(deductedPoints);
+      updateIfStreakBroken(true);
+    } else {
+      updatePoints(currentPoints + 1);
+      updateIfStreakBroken(false);
+      updateStreak(currentStreak + 1);
+    }
 
+    setIsClefairy(canSpawnClefairy);
     setTimeout(() => {
       setPosition({ top, left });
       setVisible(true);
@@ -205,19 +234,32 @@ const JigglypuffManager: React.FC<JigglypuffManagerProps> = ({
   };
 
   return (
-    <Jigglypuff
-      // width={JIGGLYPUFF_WIDTH_PX}
-      // height={JIGGLYPUFF_HEIGHT_PX}
-      // @ts-ignore
-      onClick={handleClick}
-      style={{
-        position: "absolute",
-        top: position.top,
-        left: position.left,
-        visibility: visible ? "visible" : "hidden",
-        // transition: "visibility 0.5s ease-in-out",
-        cursor: "pointer",
-      }}
-    />
+    <>
+      {isClefairy ? (
+        <Clefairy
+          // @ts-ignore
+          onClick={handleClick}
+          style={{
+            position: "absolute",
+            top: position.top,
+            left: position.left,
+            visibility: visible ? "visible" : "hidden",
+            cursor: "pointer",
+          }}
+        />
+      ) : (
+        <Jigglypuff
+          // @ts-ignore
+          onClick={handleClick}
+          style={{
+            position: "absolute",
+            top: position.top,
+            left: position.left,
+            visibility: visible ? "visible" : "hidden",
+            cursor: "pointer",
+          }}
+        />
+      )}
+    </>
   );
 };

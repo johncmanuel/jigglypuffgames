@@ -1,12 +1,15 @@
-// TODO:
-// Come up with some way to automatically update jigglypuff.json
-// if new changes from the API are made. Maybe that's the right way
-// to handle it? Or would it be better to store the image(s) I want
-// locally in the project repo?
-export const pokeAPIUrl = "https://pokeapi.co/api/v2";
-export const pokemonEndpoint = "pokemon";
+// import { getPokemon, pokeAPIUrl } from "@/internal/pokeapi/pokemon";
+import jigglypuff from "@/internal/pokeapi/jigglypuff.json";
+import clefairy from "@/internal/pokeapi/clefairy.json";
 
-export const getPokemon = async (apiUrl: string, pokemon: string) => {
-  const res = await fetch(`${apiUrl}/${pokemonEndpoint}/${pokemon}`);
-  return res.json();
+export const getJigglyPuffSprite = () => {
+  return jigglypuff.sprites.other["official-artwork"].front_default;
 };
+
+export const getClefairySprite = () => {
+  return clefairy.sprites.other["official-artwork"].front_default;
+};
+
+// export const getJigglypuff = async () => {
+// 	return await getPokemon(pokeAPIUrl, "jigglypuff");
+// };
