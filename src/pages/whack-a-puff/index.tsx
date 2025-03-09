@@ -13,10 +13,10 @@ import {
 import useClickOutside from "@/hooks/useOnOutsideClick";
 
 export default function WhackAPuff() {
-  const initTimerSecs = 1;
   const initPoints = 0;
   const initStreak = 0;
-  const TIME_LIMIT_SECS = 60;
+  const TIME_LIMIT_SECS = 30;
+  const initTimerSecs = TIME_LIMIT_SECS;
 
   const [timerSecs, setTimerSecs] = useState(initTimerSecs);
   const [gameBegin, setGameBegin] = useState(false);
@@ -37,7 +37,7 @@ export default function WhackAPuff() {
   const startGame = () => {
     setGameBegin(true);
     setPoints(points >= 0 ? initPoints : points);
-    setTimerSecs(timerSecs > 0 ? initTimerSecs : timerSecs);
+    setTimerSecs(TIME_LIMIT_SECS);
     setPointsStreak(pointsStreak > 0 ? initStreak : pointsStreak);
     setMaxPointsStreak(maxPointsStreak > 0 ? initStreak : maxPointsStreak);
     setPlayedPreviously(playedPreviously ? false : playedPreviously);
@@ -66,20 +66,20 @@ export default function WhackAPuff() {
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (!gameBegin && timerSecs !== 0) {
+    if (!gameBegin && timerSecs !== TIME_LIMIT_SECS) {
       // @ts-ignore: ignore error regarding usage of variable before
       // assignment
       clearInterval(interval);
     } else {
       interval = setInterval(() => {
         setTimerSecs((sec) => {
-          const nextSec = sec + 1;
-          if (nextSec >= TIME_LIMIT_SECS) {
+          const nextSec = sec - 1;
+          if (nextSec <= 0) {
             endGame();
             // () => clearInterval(interval);
-            return TIME_LIMIT_SECS;
+            return 0;
           }
-          return sec + 1;
+          return nextSec;
         });
       }, 1000);
     }
