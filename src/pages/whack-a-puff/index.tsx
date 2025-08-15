@@ -3,7 +3,7 @@ import Container from "@/components/Container";
 import { useWhackAPuffGame, ClickableCharacter} from "@/internal/whack-a-puff";
 
 export default function WhackAPuff() {
-  const { state, dispatch } = useWhackAPuffGame();
+  const { state, dispatch, stats } = useWhackAPuffGame();
   const { status, timer, points, streak, maxStreak } = state;
 
   const handleMiss = () => {
@@ -37,6 +37,10 @@ export default function WhackAPuff() {
             <h1 className="text-2xl font-bold">Time's up!</h1>
             <h2 className="text-xl">Total points earned: {points}</h2>
             <h2 className="text-xl">Highest streak: {maxStreak}</h2>
+            <div className="mt-2 text-pink-600">
+              <div>Best Points: {stats.points}</div>
+              <div>Best Streak: {stats.maxStreak}</div>
+            </div>
             <button
               type="button"
               className="mt-4 focus:outline-none text-white bg-pink-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2"

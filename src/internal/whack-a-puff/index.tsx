@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useReducer, useCallback } from "react";
 import Jigglypuff from "@/components/Jigglypuff";
 import Clefairy from "@/components/Clefairy";
+import { Stats, getStats, saveStats } from "./saveStats";
 
 const TIME_LIMIT_SECS = 30;
 const CLEFAIRY_SPAWN_CHANCE = 0.2;
@@ -78,6 +79,15 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
 
 export const useWhackAPuffGame = () => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
+  const [stats, setStats] = useState<Stats>(getStats());
+
+  useEffect(() => {
+    if (state.status === "finished") {
+      saveStats({points: state.points, maxStreak: state.maxStreak});
+      setStats(getStats());
+    }
+  }, [state.status, state.points, state.maxStreak]);
+
 
   useEffect(() => {
     if (state.status !== "playing") {
@@ -91,7 +101,7 @@ export const useWhackAPuffGame = () => {
     return () => clearInterval(interval);
   }, [state.status]);
 
-  return { state, dispatch };
+  return { state, dispatch, stats };
 };
 
 const getRandomPos = (imgWidth?: number, imgHeight?: number) => {
