@@ -1,10 +1,30 @@
 import ExtendedHead from "@/components/ExtendedHead";
-import Container from "@/components/Container";
-import { useWhackAPuffGame, ClickableCharacter} from "@/internal/whack-a-puff";
+import { useWhackAPuffGame, ClickableCharacter } from "@/internal/whack-a-puff";
+import { useState, useEffect } from "react";
 
 export default function WhackAPuff() {
   const { state, dispatch, stats } = useWhackAPuffGame();
   const { status, timer, points, streak, maxStreak } = state;
+
+  const [showCountdown, setShowCountdown] = useState(false);
+  const startingCountdownNum = 3;
+  const [countdown, setCountdown] = useState(startingCountdownNum);
+
+  useEffect(() => {
+    if (showCountdown && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+    if (showCountdown && countdown === 0) {
+      setShowCountdown(false);
+      dispatch({ type: "START_GAME" });
+    }
+  }, [showCountdown, countdown, dispatch]);
+
+  const handleStartClick = () => {
+    setCountdown(3);
+    setShowCountdown(true);
+  };
 
   const handleMiss = () => {
     dispatch({ type: "MISS" });
@@ -21,59 +41,77 @@ export default function WhackAPuff() {
   return (
     <>
       <ExtendedHead title={"Whack a Puff!"} />
-      <Container>
-        {status === "idle" && (
-          <button
-            type="button"
-            className="focus:outline-none text-white bg-pink-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2"
-            onClick={() => dispatch({ type: "START_GAME" })}
-          >
-            Start Game
-          </button>
-        )}
-
-        {status === "finished" && (
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">Time's up!</h1>
-            <h2 className="text-xl">Total points earned: {points}</h2>
-            <h2 className="text-xl">Highest streak: {maxStreak}</h2>
-            <div className="mt-2 text-pink-600">
-              <div>Best Points: {stats.points}</div>
-              <div>Best Streak: {stats.maxStreak}</div>
+      {status === "idle" && (
+        <div className="h-screen flex items-center justify-center">
+          {showCountdown ? (
+            <div className="text-center">
+              <span className="text-7xl font-extrabold text-pink-600 drop-shadow-lg animate-pulse">
+                {countdown}
+              </span>
             </div>
+          ) : (
             <button
               type="button"
-              className="mt-4 focus:outline-none text-white bg-pink-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2"
-              onClick={() => dispatch({ type: "START_GAME" })}
+              className="focus:outline-none text-white bg-pink-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-lg px-8 py-4 mb-2 shadow-lg"
+              onClick={handleStartClick}
             >
-              Play Again?
+              Start Game
             </button>
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
-        {status === "playing" && (
-          <div className="w-screen h-screen" onClick={handleMiss}>
-            <div
-              className="fixed top-4 left-4 bg-white/40 border border-pink-300 shadow-lg rounded-xl px-6 py-4 flex flex-col gap-2 min-w-[180px] transition-all"
-              style={{ width: "190px" }} 
-            >
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-pink-400">Timer:</span>
-                <span className="font-mono text-lg">{timer}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-pink-400">Points:</span>
-                <span className="font-mono text-lg">{points}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-pink-400">Streak:</span>
-                <span className="font-mono text-lg">{streak}</span>
-              </div>
+      {status === "finished" && (
+        <div className="text-center">
+          {showCountdown ? (
+            <div className="flex items-center justify-center h-screen">
+              <span className="text-7xl font-extrabold text-pink-600 drop-shadow-lg animate-pulse">
+                {countdown}
+              </span>
             </div>
-            <ClickableCharacter onHit={handleHit} />
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold">Time's up!</h1>
+              <h2 className="text-xl">Total points earned: {points}</h2>
+              <h2 className="text-xl">Highest streak: {maxStreak}</h2>
+              <div className="mt-2 text-pink-600">
+                <div>Best Points: {stats.points}</div>
+                <div>Best Streak: {stats.maxStreak}</div>
+              </div>
+              <button
+                type="button"
+                className="mt-4 focus:outline-none text-white bg-pink-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2"
+                onClick={handleStartClick}
+              >
+                Play Again?
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {status === "playing" && (
+        <div className="w-screen h-screen" onClick={handleMiss}>
+          <div
+            className="fixed top-4 left-4 bg-white/40 border border-pink-300 shadow-lg rounded-xl px-6 py-4 flex flex-col gap-2 min-w-[180px] transition-all"
+            style={{ width: "190px" }}
+          >
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-pink-400">Timer:</span>
+              <span className="font-mono text-lg">{timer}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-pink-400">Points:</span>
+              <span className="font-mono text-lg">{points}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-pink-400">Streak:</span>
+              <span className="font-mono text-lg">{streak}</span>
+            </div>
           </div>
-        )}
-      </Container>
+          <ClickableCharacter onHit={handleHit} />
+        </div>
+      )}
     </>
   );
 }
