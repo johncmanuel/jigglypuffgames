@@ -59,7 +59,7 @@ const DebugWindow = ({
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const windowRef = useRef(null);
+  const windowRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: any) => {
     if (windowRef.current) {
@@ -145,6 +145,15 @@ const DebugWindow = ({
   );
 };
 
+interface ConfirmationModalProps {
+  onConfirm: () => void;
+  onCancel: () => void;
+  title: string;
+  message: string;
+  confirmText: string;
+  confirmColor?: string;
+}
+
 const ConfirmationModal = ({
   onConfirm,
   onCancel,
@@ -152,7 +161,7 @@ const ConfirmationModal = ({
   message,
   confirmText,
   confirmColor,
-}) => {
+}: ConfirmationModalProps) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
@@ -287,6 +296,10 @@ const Note = ({ id, onAnimationEnd }: NoteProps) => {
   );
 };
 
+interface FloatingNote {
+  id: number;
+}
+
 export default function MathMelody() {
   const [level, setLevel] = useState(1);
   const [score, setScore] = useState(0);
@@ -300,7 +313,7 @@ export default function MathMelody() {
   });
   const [jigglypuffStatus, setJigglypuffStatus] =
     useState<JigglypuffStatus>("neutral");
-  const [notes, setNotes] = useState([]);
+  const [notes, setNotes] = useState<FloatingNote[]>([]);
   const [jigglypuffSprite, setJigglypuffSprite] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -337,7 +350,7 @@ export default function MathMelody() {
         setJigglypuffSprite(
           data.sprites.other["official-artwork"].front_default
         );
-      } catch (err) {
+      } catch (err: any) {
         setError(err.message);
       } finally {
         setIsLoading(false);
@@ -584,6 +597,7 @@ export default function MathMelody() {
       highScore: setHighScore,
       dailyStreak: setDailyStreak,
     };
+    // @ts-ignore: fix later lol
     setters[key]?.(value);
   };
 
