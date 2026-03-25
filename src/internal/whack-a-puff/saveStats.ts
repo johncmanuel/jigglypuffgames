@@ -1,8 +1,8 @@
 const LOCAL_KEY = "whackapuff_stats";
 
 export interface Stats {
-    points: number,
-    maxStreak: number
+  points: number;
+  maxStreak: number;
 }
 
 export function saveStats(stats: Stats) {
