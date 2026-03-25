@@ -37,6 +37,23 @@ module.exports = {
           "0%": { transform: "translateX(calc(100vw + 250px))" },
           "100%": { transform: "translateX(-250px)" },
         },
+        rhythmGlow: {
+          "0%, 100%": { opacity: "0.3" },
+          "50%": { opacity: "0.8" },
+        },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.5)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        hitFloat: {
+          "0%": { opacity: "1", transform: "translateY(0) scale(1)" },
+          "50%": { opacity: "1", transform: "translateY(-20px) scale(1.1)" },
+          "100%": { opacity: "0", transform: "translateY(-50px) scale(0.9)" },
+        },
       },
       animation: {
         bounce: "bounce 1s infinite",
@@ -45,6 +62,10 @@ module.exports = {
         screenShake: "screenShake 0.5s linear 4",
         moveLeftToRight: "moveLeftToRight 6s linear forwards",
         moveRightToLeft: "moveRightToLeft 6s linear forwards",
+        rhythmGlow: "rhythmGlow 0.5s ease-in-out infinite",
+        fadeIn: "fadeIn 0.6s ease-out forwards",
+        scaleIn: "scaleIn 0.5s ease-out forwards",
+        hitFloat: "hitFloat 0.8s ease-out forwards",
       },
     },
   },

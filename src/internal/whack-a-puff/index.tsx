@@ -44,13 +44,16 @@ function pickRandomCharacter(): CharacterType {
 }
 
 export interface GameState {
-  status: "idle" | "playing" | "finished";
+  status: "idle" | "playing" | "rhythm" | "finished";
   timer: number;
+  timerDuration: number;
   points: number;
   streak: number;
   maxStreak: number;
   stunned: boolean;
   characterCount: number;
+  wigglytuffSpawned: boolean;
+  wigglytuffDone: boolean;
 }
 
 export type GameAction =
@@ -62,16 +65,24 @@ export type GameAction =
   | { type: "HIT_SCREAM_TAIL" }
   | { type: "STUN_END" }
   | { type: "MISS" }
-  | { type: "SET_CHARACTER_COUNT"; count: number };
+  | { type: "SET_CHARACTER_COUNT"; count: number }
+  | { type: "SET_TIMER_DURATION"; duration: number }
+  | { type: "START_RHYTHM" }
+  | { type: "RHYTHM_SUCCESS" }
+  | { type: "RHYTHM_FAIL" }
+  | { type: "WIGGLYTUFF_SKIP" };
 
 const initialState: GameState = {
   status: "idle",
   timer: TIME_LIMIT_SECS,
+  timerDuration: TIME_LIMIT_SECS,
   points: 0,
   streak: 0,
   maxStreak: 0,
   stunned: false,
   characterCount: 1,
+  wigglytuffSpawned: false,
+  wigglytuffDone: false,
 };
 
 const gameReducer = (state: GameState, action: GameAction): GameState => {
@@ -80,6 +91,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       return {
         ...initialState,
         status: "playing",
+        timer: state.timerDuration,
+        timerDuration: state.timerDuration,
         characterCount: state.characterCount,
       };
     case "END_GAME":
@@ -134,6 +147,38 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         ...state,
         characterCount: action.count,
       };
+    case "SET_TIMER_DURATION":
+      return {
+        ...state,
+        timerDuration: action.duration,
+      };
+    case "START_RHYTHM":
+      return {
+        ...state,
+        status: "rhythm",
+        wigglytuffSpawned: true,
+      };
+    case "RHYTHM_SUCCESS":
+      return {
+        ...state,
+        status: "playing",
+        wigglytuffDone: true,
+        points: state.points + 15,
+        timer: state.timer + 10,
+      };
+    case "RHYTHM_FAIL":
+      return {
+        ...state,
+        status: "playing",
+        wigglytuffDone: true,
+        points: 0,
+        streak: 0,
+      };
+    case "WIGGLYTUFF_SKIP":
+      return {
+        ...state,
+        wigglytuffDone: true,
+      };
     default:
       return state;
   }
@@ -142,6 +187,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
 export const useWhackAPuffGame = () => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const [stats, setStats] = useState<Stats>(getStats());
+  const wigglytuffThreshold = useRef(0);
 
   useEffect(() => {
     if (state.status === "finished") {
@@ -161,6 +207,36 @@ export const useWhackAPuffGame = () => {
 
     return () => clearInterval(interval);
   }, [state.status]);
+
+  // Set wigglytuff threshold when game starts that's proportional to timer duration
+  useEffect(() => {
+    if (state.status === "playing" && state.timer === state.timerDuration) {
+      const min = Math.floor(state.timerDuration * 0.5);
+      const max = Math.floor(state.timerDuration * 0.83);
+      wigglytuffThreshold.current =
+        Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+  }, [state.status, state.timer, state.timerDuration]);
+
+  useEffect(() => {
+    if (
+      state.status === "playing" &&
+      !state.wigglytuffSpawned &&
+      !state.wigglytuffDone &&
+      state.timer <= wigglytuffThreshold.current
+    ) {
+      if (Math.random() < 0.3) {
+        dispatch({ type: "START_RHYTHM" });
+      } else {
+        dispatch({ type: "WIGGLYTUFF_SKIP" });
+      }
+    }
+  }, [
+    state.status,
+    state.timer,
+    state.wigglytuffSpawned,
+    state.wigglytuffDone,
+  ]);
 
   useEffect(() => {
     if (!state.stunned) return;
@@ -354,3 +430,6 @@ export const MovingIgglybuff: React.FC<MovingIgglybuffProps> = ({
     </div>
   );
 };
+
+export { RhythmGame } from "./rhythm";
+export type { RhythmResult } from "./rhythm";
