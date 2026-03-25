@@ -25,6 +25,12 @@ export default function Home() {
             >
               Math Melody
             </Link>
+            <Link
+              href="/rhythm-game"
+              className="inline-block bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full shadow transition duration-200"
+            >
+              Rhythm Challenge
+            </Link>
           </div>
         </section>
       </main>

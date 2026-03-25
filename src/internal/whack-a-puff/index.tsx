@@ -54,6 +54,7 @@ export interface GameState {
   characterCount: number;
   wigglytuffSpawned: boolean;
   wigglytuffDone: boolean;
+  wigglytuffThreshold: number;
 }
 
 export type GameAction =
@@ -83,18 +84,24 @@ const initialState: GameState = {
   characterCount: 1,
   wigglytuffSpawned: false,
   wigglytuffDone: false,
+  wigglytuffThreshold: 0,
 };
 
 const gameReducer = (state: GameState, action: GameAction): GameState => {
   switch (action.type) {
-    case "START_GAME":
+    case "START_GAME": {
+      const min = Math.floor(state.timerDuration * 0.5);
+      const max = Math.floor(state.timerDuration * 0.83);
+      const threshold = Math.floor(Math.random() * (max - min + 1)) + min;
       return {
         ...initialState,
         status: "playing",
         timer: state.timerDuration,
         timerDuration: state.timerDuration,
         characterCount: state.characterCount,
+        wigglytuffThreshold: threshold,
       };
+    }
     case "END_GAME":
       return {
         ...state,
@@ -102,6 +109,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       };
     case "TICK":
       if (state.stunned) return state;
+      if (state.status !== "playing") return state;
       const newTime = state.timer - 1;
       return {
         ...state,
@@ -187,7 +195,6 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
 export const useWhackAPuffGame = () => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const [stats, setStats] = useState<Stats>(getStats());
-  const wigglytuffThreshold = useRef(0);
 
   useEffect(() => {
     if (state.status === "finished") {
@@ -208,24 +215,15 @@ export const useWhackAPuffGame = () => {
     return () => clearInterval(interval);
   }, [state.status]);
 
-  // Set wigglytuff threshold when game starts that's proportional to timer duration
-  useEffect(() => {
-    if (state.status === "playing" && state.timer === state.timerDuration) {
-      const min = Math.floor(state.timerDuration * 0.5);
-      const max = Math.floor(state.timerDuration * 0.83);
-      wigglytuffThreshold.current =
-        Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-  }, [state.status, state.timer, state.timerDuration]);
-
   useEffect(() => {
     if (
       state.status === "playing" &&
       !state.wigglytuffSpawned &&
       !state.wigglytuffDone &&
-      state.timer <= wigglytuffThreshold.current
+      state.wigglytuffThreshold > 0 &&
+      state.timer <= state.wigglytuffThreshold
     ) {
-      if (Math.random() < 0.3) {
+      if (Math.random() < 0.5) {
         dispatch({ type: "START_RHYTHM" });
       } else {
         dispatch({ type: "WIGGLYTUFF_SKIP" });
@@ -236,6 +234,7 @@ export const useWhackAPuffGame = () => {
     state.timer,
     state.wigglytuffSpawned,
     state.wigglytuffDone,
+    state.wigglytuffThreshold,
   ]);
 
   useEffect(() => {
